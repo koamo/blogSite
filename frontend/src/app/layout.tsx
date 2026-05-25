@@ -5,14 +5,14 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AdSenseScript from '@/components/AdSenseScript';
 
-// Outfit 폰트 설정 (제목 및 브랜드 강조용)
+// Outfit 폰트 설정
 const outfit = Outfit({
   subsets: ['latin'],
   variable: '--font-outfit',
   display: 'swap',
 });
 
-// Inter 폰트 설정 (가독성 높은 본문 리딩용)
+// Inter 폰트 설정
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
@@ -20,17 +20,22 @@ const inter = Inter({
 });
 
 /**
- * 블로그 전체의 검색 엔진 최적화(SEO)를 보장하는 기본 메타데이터 객체입니다.
+ * 블로그 전체의 검색 엔진 최적화(SEO) 및 애드센스 검증 메타데이터 객체입니다.
  */
 export const metadata: Metadata = {
   title: {
     default: 'GoldenLog - 가치를 담는 개인 지식 블로그',
-    template: '%s | GoldenLog', // 하위 상세 페이지 제목 접미사 자동화
+    template: '%s | GoldenLog',
   },
   description: '구글 애드센스 통과 및 실전 IT, 생산성, 자기계발 전문 지식을 전하는 초고속 정적 블로그입니다.',
   keywords: ['애드센스', '수익형블로그', 'IT개발', '생산성팁', '노션', 'NextJS'],
   authors: [{ name: 'GoldenLog' }],
-  metadataBase: new URL('http://localhost:3000'), // 빌드 검증용 기본 베이스 도메인 설정
+  metadataBase: new URL('http://localhost:3000'), 
+  
+  // [보정 핵심]: 구글 애드센스 공식 사이트 소유권 확인 전용 메타 태그 주입
+  other: {
+    'google-adsense-account': 'ca-pub-7317136702675678', // 애드센스 소유권 인증 코드 하드코딩
+  },
 };
 
 export default function RootLayout({
