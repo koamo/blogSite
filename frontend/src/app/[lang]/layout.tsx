@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Outfit, Inter } from 'next/font/google';
-import './globals.css';
+import '../globals.css'; // [보정]: app/[lang]/layout.tsx 로 이동함에 따라 상대경로를 한 레벨 격상 (../globals.css)
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AdSenseScript from '@/components/AdSenseScript';
@@ -19,9 +19,6 @@ const inter = Inter({
   display: 'swap',
 });
 
-/**
- * 블로그 전체의 검색 엔진 최적화(SEO) 및 애드센스 검증 메타데이터 객체입니다.
- */
 export const metadata: Metadata = {
   title: {
     default: 'GoldenLog - 가치를 담는 개인 지식 블로그',
@@ -31,26 +28,38 @@ export const metadata: Metadata = {
   keywords: ['애드센스', '수익형블로그', 'IT개발', '생산성팁', '노션', 'NextJS'],
   authors: [{ name: 'GoldenLog' }],
   metadataBase: new URL('http://localhost:3000'), 
-  
-  // [보정 핵심]: 구글 애드센스 공식 사이트 소유권 확인 전용 메타 태그 주입
   other: {
-    'google-adsense-account': 'ca-pub-7317136702675678', // 애드센스 소유권 인증 코드 하드코딩
+    'google-adsense-account': 'ca-pub-7317136702675678',
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
+// Next.js 16 글로벌 레이아웃용 Props 타입 정의
+interface LayoutProps {
   children: React.ReactNode;
-}) {
+  params: Promise<{
+    lang: string;
+  }>;
+}
+
+/**
+ * 다국어 동적 세그먼트 최상단에서 동작할 전역 루트 레이아웃 컴포넌트입니다.
+ */
+export default async function RootLayout({
+  children,
+  params,
+}: LayoutProps) {
+  // [비동기 Params 해제]: Next.js 16 가이드라인을 준수하여 로케일 코드를 안전하게 수집
+  const resolvedParams = await params;
+  const lang = resolvedParams.lang || 'ko';
+
   return (
-    <html lang="ko" className={`${outfit.variable} ${inter.variable}`}>
+    <html lang={lang} className={`${outfit.variable} ${inter.variable}`}>
       <body className="flex min-h-screen flex-col bg-[#030712] text-slate-100 antialiased">
         {/* 구글 애드센스 전역 심사 스크립트 */}
         <AdSenseScript />
         
-        {/* 상단 글래스모피즘 네비게이션 헤더 */}
-        <Header />
+        {/* 상단 다국어 선택 스위치가 이식된 헤더 */}
+        <Header lang={lang} />
         
         {/* 본문 콘텐츠 렌더링 영역 */}
         <main className="flex-grow">
