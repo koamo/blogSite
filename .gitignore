@@ -1,0 +1,31 @@
+# Next.js & Node.js 의존성 폴더 제외
+node_modules/
+/frontend/node_modules/
+
+# Next.js 빌드 임시 결과물 및 프로덕션 번들 제외
+.next/
+/frontend/.next/
+out/
+/frontend/out/
+build/
+
+# 파이썬 가상환경 및 캐시 파일 제외
+backend/venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# 로컬 환경 변수 설정 파일 (개인정보 보호)
+.env*.local
+
+# 시스템 및 IDE 메타데이터 제외
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
