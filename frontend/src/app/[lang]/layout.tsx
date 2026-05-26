@@ -1,6 +1,6 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { Outfit, Inter } from 'next/font/google';
-import '../globals.css'; // [보정]: app/[lang]/layout.tsx 로 이동함에 따라 상대경로를 한 레벨 격상 (../globals.css)
+import '../globals.css'; 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AdSenseScript from '@/components/AdSenseScript';
@@ -21,13 +21,16 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'GoldenLog - 가치를 담는 개인 지식 블로그',
+    default: 'GoldenLog - 가치 있는 개인 지식 블로그',
     template: '%s | GoldenLog',
   },
-  description: '구글 애드센스 통과 및 실전 IT, 생산성, 자기계발 전문 지식을 전하는 초고속 정적 블로그입니다.',
+  description: '구글 애드센스 승인 및 최신 IT, 생산성, 자기계발 전문 지식을 전달하는 초고속 정적 블로그입니다.',
   keywords: ['애드센스', '수익형블로그', 'IT개발', '생산성팁', '노션', 'NextJS'],
   authors: [{ name: 'GoldenLog' }],
   metadataBase: new URL('http://localhost:3000'), 
+  verification: {
+    google: 'bGXWFZLkGtDdZACKeIEY5pQB87_7TK1-UatjnGobEkk',
+  },
   other: {
     'google-adsense-account': 'ca-pub-7317136702675678',
   },
@@ -42,13 +45,12 @@ interface LayoutProps {
 }
 
 /**
- * 다국어 동적 세그먼트 최상단에서 동작할 전역 루트 레이아웃 컴포넌트입니다.
+ * 다국어 정적 세그먼트 최상단에서 시작하는 전역 루트 레이아웃 컴포넌트입니다.
  */
 export default async function RootLayout({
   children,
   params,
 }: LayoutProps) {
-  // [비동기 Params 해제]: Next.js 16 가이드라인을 준수하여 로케일 코드를 안전하게 수집
   const resolvedParams = await params;
   const lang = resolvedParams.lang || 'ko';
 
@@ -58,7 +60,7 @@ export default async function RootLayout({
         {/* 구글 애드센스 전역 심사 스크립트 */}
         <AdSenseScript />
         
-        {/* 상단 다국어 선택 스위치가 이식된 헤더 */}
+        {/* 상단 다국어 선택 스위처가 내장된 헤더 */}
         <Header lang={lang} />
         
         {/* 본문 콘텐츠 렌더링 영역 */}
