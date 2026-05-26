@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   description: '구글 애드센스 승인 및 최신 IT, 생산성, 자기계발 전문 지식을 전달하는 초고속 정적 블로그입니다.',
   keywords: ['애드센스', '수익형블로그', 'IT개발', '생산성팁', '노션', 'NextJS'],
   authors: [{ name: 'GoldenLog' }],
-  metadataBase: new URL('http://localhost:3000'), 
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://blog-site-seven-weld.vercel.app'), 
   verification: {
     google: 'bGXWFZLkGtDdZACKeIEY5pQB87_7TK1-UatjnGobEkk',
   },
