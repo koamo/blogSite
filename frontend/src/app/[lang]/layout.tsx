@@ -28,6 +28,25 @@ export const metadata: Metadata = {
   keywords: ['애드센스', '수익형블로그', 'IT개발', '생산성팁', '노션', 'NextJS'],
   authors: [{ name: 'GoldenLog' }],
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://blog-site-seven-weld.vercel.app'), 
+  
+  // [보완 핵심]: 네이버 서치어드바이저 및 SNS 카드 공유용 Open Graph 최적화
+  openGraph: {
+    title: 'GoldenLog - 가치 있는 개인 지식 블로그',
+    description: '구글 애드센스 승인 및 최신 IT, 생산성, 자기계발 전문 지식을 전달하는 초고속 정적 블로그입니다.',
+    url: 'https://blog-site-seven-weld.vercel.app',
+    siteName: 'GoldenLog',
+    locale: 'ko_KR',
+    type: 'website',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80',
+        width: 800,
+        height: 600,
+        alt: 'GoldenLog IT Tech Blog Workspace',
+      },
+    ],
+  },
+  
   verification: {
     google: 'bGXWFZLkGtDdZACKeIEY5pQB87_7TK1-UatjnGobEkk',
   },
