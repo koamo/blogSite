@@ -17,8 +17,12 @@ __pycache__/
 *.pyd
 .pytest_cache/
 
-# 로컬 환경 변수 설정 파일 (개인정보 보호)
-.env*.local
+# 로컬 환경 변수 설정 파일 (API 키 유출 원천 차단)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # 시스템 및 IDE 메타데이터 제외
 .DS_Store

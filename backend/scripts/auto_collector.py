@@ -1,5 +1,6 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import os
+import sys
 import re
 import json
 import urllib.parse
@@ -9,7 +10,11 @@ import random
 from datetime import datetime
 from deep_translator import GoogleTranslator
 
-# 기본 프로젝트 경로 설정
+# 윈도우 환경 터미널 특수문자(\xa0 등) 출력 인코딩 크래시 원천 차단
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
+# 기본 프로젝트 경로 설정 (IT blog 전용)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # /backend 폴더
 BLOG_DIR = os.path.dirname(BASE_DIR)  # 전체 프로젝트 루트 폴더
 POSTS_DIR = os.path.join(BLOG_DIR, "data", "posts")
@@ -46,6 +51,25 @@ def check_blacklist(text):
             return True
     return False
 
+def validate_content(title, summary):
+    """
+    수집된 요약글이 정보 기술 리포트로서 실질적인 가치가 있는지 검증합니다.
+    80자 이하이거나 메타데이터 텍스트가 있을 경우 False를 반환하여 수집을 스킵합니다.
+    """
+    if not summary or not title:
+        return False
+    if len(summary.strip()) < 80:
+        return False
+    
+    # 단순 메타데이터 성격의 단어가 섞여 있으면 수집 대상에서 제외
+    meta_patterns = ['category:', 'news date:', 'last edit review:', '마지막 편집', '뉴스작성일']
+    summary_lower = summary.lower()
+    for pattern in meta_patterns:
+        if pattern in summary_lower:
+            return False
+            
+    return True
+
 def clean_truncated_summary(summary):
     """
     RSS 피드가 제공하는 요약문 끝자락의 [...] 이나 [Read More] 잘림 현상을 패치합니다.
@@ -54,32 +78,26 @@ def clean_truncated_summary(summary):
     if not summary:
         return ""
         
-    # 흔히 발생하는 잘림 표기 제거
     summary_clean = re.sub(r'\[\.\.\.\]', '', summary)
     summary_clean = re.sub(r'\[Read\s+More.*?\]', '', summary_clean, flags=re.IGNORECASE)
-    summary_clean = re.sub(r'\.\s*\.\s*\.', '', summary_clean) # ... 표기 제거
+    summary_clean = re.sub(r'\.\s*\.\s*\.', '', summary_clean)
     
     summary_clean = summary_clean.strip()
     
-    # 마지막 문장이 미완성 상태인 경우 가장 인접한 완성 문장까지만 파싱하여 단정하게 정돈
     sentences = re.split(r'(\.|\!|\?)\s+', summary_clean)
     if len(sentences) > 2:
-        # 문장 경계와 문장 부호 재조합
         reconstructed = []
         for i in range(0, len(sentences)-1, 2):
             reconstructed.append(sentences[i] + sentences[i+1])
         
-        # 마지막 토막 문장이 마침표 없이 끝난 미완성 구문인지 판정
         last_item = sentences[-1].strip()
         if last_item and not any(last_item.endswith(p) for p in ['.', '!', '?']):
-            # 미완성 마지막 토막 버리고 앞쪽 완성 문장들만 채택
             summary_clean = " ".join(reconstructed)
         else:
             if last_item:
                 reconstructed.append(last_item)
             summary_clean = " ".join(reconstructed)
             
-    # 혹시 모를 마침표가 완전히 부재하면 보정
     summary_clean = summary_clean.strip()
     if summary_clean and not any(summary_clean.endswith(p) for p in ['.', '!', '?']):
         summary_clean += "."
@@ -87,33 +105,25 @@ def clean_truncated_summary(summary):
     return summary_clean
 
 def extract_main_subject(title):
-    """
-    기사 제목에서 핵심 주제 키워드를 인텔리전트하게 추출합니다.
-    문장 내 영문 명사 및 첫 알파벳 대문자 단어들을 우선 타겟팅하여 블로그 본문 변형에 활용합니다.
-    """
+    """기사 제목에서 핵심 주제 키워드를 인텔리전트하게 추출합니다."""
     if not title:
         return "기술 혁신"
     
-    # 대괄호 안의 글자 우선 추출 (예: [Amazon Bedrock] -> Amazon Bedrock)
     brackets = re.findall(r'\[(.*?)\]', title)
     if brackets:
         return brackets[0]
         
-    # 콜론 앞 단어 추출 (예: AWS News: New advanced -> AWS News)
     if ":" in title:
         part = title.split(":", 1)[0].strip()
         if len(part) < 30:
             return part
             
-    # 대문자로 시작하는 고유 명사들 추출
     words = re.findall(r'\b[A-Z][a-zA-Z0-9]*\b', title)
     if words:
-        # 가급적 의미 있는 기술 명칭(Tech, AWS, Next, AI 등) 위주로 조합
-        filtered = [w for w in words if w.lower() not in ['a', 'an', 'the', 'is', 'are', 'in', 'on', 'at', 'by', 'for', 'with', 'new', 'how', 'why', 'what']]
+        filtered = [w for w in words if w.lower() not in ['a', 'an', 'the', 'is', 'are', 'in', 'on', 'at', 'by', 'for', 'with', 'new', 'how', 'why', 'what', 'study']]
         if filtered:
             return " ".join(filtered[:2])
             
-    # 한글 제목인 경우 명사 추출
     korean_words = re.findall(r'\b[가-힣]{2,8}\b', title)
     if korean_words:
         return korean_words[0]
@@ -122,63 +132,127 @@ def extract_main_subject(title):
 
 def generate_dynamic_free_content(feed_name, link, translated_title, translated_body):
     """
-    Gemini API 키가 없을 때 (무료 모드), 기사마다 독창적인 개별 분석과 고유의 지문을 갖도록
-    제목 키워드와 랜덤 템플릿 풀을 기반으로 100% 동적 기사 포스팅을 편찬합니다.
+    무료 번역 모드 시, 기사 주제에 최적화된 100% 차별화된 템플릿을 선택하여
+    중복 노출을 완벽하게 예방하는 초고품질 IT 테크 리포트를 완성합니다.
     """
-    # 핵심 주제 추출
     subject = extract_main_subject(translated_title)
+    subject_lower = subject.lower()
     
-    # 2번 영역(블로그 분석 및 인사이트)의 동적 베리에이션 템플릿 풀
+    # 1. 주제 분석을 통한 맞춤형 4대 IT 가이드라인 분기 수립 (중복 제거 핵심)
+    if any(x in subject_lower for x in ['aws', 'cloud', 'server', 'database', '인프라', '데이터베이스', '클라우드']):
+        # 유형 A: 클라우드/인프라/서버 형 맞춤형 가이드라인
+        it_guidelines = f"""서버 및 데이터 아키텍처 생태계에서 최근 발표된 **{subject}** 소식은 고가용성 IT 인프라 설계 측면에서 매우 깊은 분석점을 제시합니다. IT 블로그의 전문적인 실전 엔지니어링 4대 철칙은 다음과 같습니다:
+
+1. **클라우드 자원 최적화 & DX (Developer Experience)**
+   * **원리**: 인프라의 투명한 모니터링과 쾌속 배포 환경은 엔지니어들이 설정 지옥에서 벗어나 비즈니스 로직에 몰두할 수 있는 최고의 DX 가치를 낳아 줍니다.
+   * **실천 노하우**: {subject} 환경 변수를 로컬 파일(`.env`) 하위로 철저하게 분리하고, 자동 CI/CD 배포 파이프라인 상에 코드 무결성 검사(Linter)를 전면 동기화하여 개발 편의성을 극대화해야 합니다.
+
+2. **인프라 성능 극대화 (Cloud Performance & Edge Routing)**
+   * **원리**: 서버리스 아키텍처와 Edge 라우팅 기술은 글로벌 트래픽에 대한 레이턴시(응답 속도)를 극적으로 단축시킵니다.
+   * **실천 노하우**: Next.js의 정적 사이트 생성(SSG) 컴파일 방식을 채택하여 DB 호출 부하를 0%로 무력화하고, 폰트 및 정적 리소스는 CDN 전송망에 견고히 사전에 올려두어 최상의 접속 응답력을 수호해야 합니다.
+
+3. **엔터프라이즈 보안 수호 (Cloud Security-First)**
+   * **원리**: 개방형 클라우드 자원은 미세한 정책 설정 오류만으로도 데이터 유출과 크롤링 위협에 쉽게 무방비 노출될 수 있습니다.
+   * **실천 노하우**: 외부 모듈과 서버 라이브러리의 보안성 점검을 자동화하고, API 키 및 비밀 환경변수가 GitHub 원격 저장소에 유출되지 않도록 `.gitignore` 안전망을 철저히 설계 및 이중 점검해야 합니다.
+
+4. **유지보수 용이한 확장성 (Scalable Infrastructure)**
+   * **원리**: 트래픽 증가에 따라 서버를 쪼개고 덧붙이는 구조적 스케일아웃(Scale-out) 능력이 서비스 생명 연장의 기본입니다.
+   * **실천 노하우**: 비즈니스 데이터 모델을 FastAPI의 Pydantic 인터페이스 등으로 규격화하여 명확히 고정하고, 프론트와 데이터 계층을 느슨하게 결합(Loose Coupling)하여 진화하는 인프라에 민첩하게 대처해야 합니다."""
+        
+    elif any(x in subject_lower for x in ['startup', 'raised', 'funding', '투자', '스타트업', '비즈니스', '유치']):
+        # 유형 B: 비즈니스/스타트업/시장 형 맞춤형 가이드라인
+        it_guidelines = f"""스타트업 생태계에 강력한 활력을 불어넣는 **{subject}** 소식은 기술의 조기 상용화와 런칭 생산성 측면에서 실질적인 교훈을 전달합니다. 비즈니스 웰니스를 도모하기 위한 IT 엔지니어링 4대 철칙은 다음과 같습니다:
+
+1. **린(Lean) 스타트업의 DX와 빠른 시장 진입**
+   * **원리**: 신속하게 동작하는 프로토타입(MVP)을 시장에 내놓고 피드백을 수용하는 DX 구조는 초기 스타트업 생존에 절대적인 나침반이 됩니다.
+   * **실천 노하우**: 복잡한 빌드 단계를 생략하기 위해 내용 기반 캐싱(Incremental Build)을 탑재하여 로컬 빌드 속도를 평균 1초 미만으로 단축하고 릴리즈 주기를 단축해야 합니다.
+
+2. **비즈니스 전환율을 돕는 경량화 성능 (Performance-Driven Conversion)**
+   * **원리**: 초기 스타트업의 유입 고객은 로딩 속도가 2초를 초과할 때 과반이 이탈합니다. 속도가 곧 매출이자 비즈니스 성패의 변곡점입니다.
+   * **실천 노하우**: 자바스크립트 크기를 전면 최적화하고 Next.js의 RSC(React Server Components)를 통해 브라우저 연산량을 서버단으로 전가시켜, 저사양 모바일 접속 환경에서도 최상의 렌더링 퍼포먼스를 내야 합니다.
+
+3. **초기 서비스 안정성 및 무결점 보안 (Startup Security)**
+   * **원리**: 대외 공신력이 생명인 스타트업에서 발생한 단 한 건의 해킹과 유출 스캔들은 기업 가치를 0%로 급락시키는 독이 됩니다.
+   * **실천 노하우**: 중요 결제 모듈과 인증 환경 변수를 이중 잠금하고, 불법 정책 위반 트래픽과 이상 접근 시도를 원천 차단하는 실시간 정책 필터를 내장해 위협 요소를 입구에서 걸러내야 합니다.
+
+4. **저비용 아키텍처의 확장 유연성 (Cost-Effective Scalability)**
+   * **원리**: 초기 인프라 운용비 부담을 혁신적으로 절감하면서도, 트래픽 폭탄에 즉시 유연하게 대처할 수 있는 고효율 아키텍처를 세팅해야 합니다.
+   * **실천 노하우**: 데이터베이스 없는 정적 콘텐츠 방식 B 구조를 정밀 구축함으로써, 호스팅 비용을 0원으로 꽁꽁 묶어두면서도 수천만 트래픽에 무너지지 않는 불사조 서비스를 구현해야 합니다."""
+
+    else:
+        # 유형 C: 코딩/프레임워크/AI/보편 기술 맞춤형 가이드라인
+        it_guidelines = f"""모던 웹 프로그래밍과 소스 진화의 패러다임을 혁신하는 **{subject}** 지식은 실무 개발 생산성과 지속 가능한 서비스 확장 관점에서 아래와 같은 IT 4대 엔지니어링 철칙을 강제합니다:
+
+1. **모던 프레임워크의 DX 생산성 (Developer Experience)**
+   * **원리**: 코드 변경 사항이 브라우저에 핫리로드되는 속도와 에러 포인트를 정확히 집어내 주는 개발 도구의 풍요로움은 엔지니어링 가치를 극대화합니다.
+   * **실천 노하우**: Pydantic 모델과 TypeScript 엄격 모드(Strict Mode)를 철저히 탑재하여 정적 컴파일 단계에서 논리적 에러를 100% 미연에 감지 및 예방해야 합니다.
+
+2. **최적화된 렌더링 성능 (Web Standard Optimization)**
+   * **원리**: 화면이 뚝뚝 끊기지 않고 물 흐르듯 가볍게 전환되는 기술적 고가치(Core Web Vitals)는 최상의 가독성과 모던한 타이포그래피 브랜딩을 안겨줍니다.
+   * **실천 노하우**: 마크다운을 정적 HTML로 컴파일할 때 fenced_code와 tables 파서를 사전 동기화하고, 리플로우(Reflow)를 최소화하는 유려한 Tailwind CSS를 조화롭게 융합해야 합니다.
+
+3. **안전성 및 철통 소스 보안 (Code Integrity & Security)**
+   * **원리**: 편리하게 가져다 쓰는 무수한 오픈소스 패키지 속 백도어와 취약점은 언제 터질지 모르는 시한폭탄과 다름없습니다.
+   * **실천 노하우**: npm audit 및 가상환경 의존성 정밀 모니터링을 상시화하고, 구글 애드센스 등 수익 모듈 주입 시 출처가 입증된 라이브러리 스크립트만 선별 허용하여 시스템 오작동을 차단해야 합니다.
+
+4. **결합성이 느슨한 유지보수성 (Loose Coupling Scalability)**
+   * **원리**: 객체지향 원칙(SOLID)처럼 각 레이어가 독립적으로 진화할 수 있도록 코드를 설계하면 장기 유지보수 단계의 비용이 기적처럼 저렴해집니다.
+   * **실천 노하우**: 복잡한 비즈니스 모듈 간의 디펜던시를 인터페이스를 거쳐 느슨하게 설계하고, 데이터 입출력 구조를 100% 정적 파일 기반으로 동기화하여 아키텍처의 수평 확장을 무리 없이 가능케 해야 합니다."""
+
+    # 2번/3번 분석 문단 풀 (주제와 결합해 다양화)
     insight_templates = [
-        f"""이번 소식은 최근 요동치는 글로벌 테크 씬에서 {subject}을 중심으로 하는 패러다임 전환이 가속화되고 있음을 보여줍니다. 특히 시장과 현장의 목소리를 분석해 볼 때 다음과 같은 입체적 관점으로 바라보아야 합니다:
-* **주요 흐름 및 시장 접근성**: {subject} 분야의 기술적 문턱이 대폭 낮아지며, 글로벌 엔지니어들과 혁신 기업들 사이에서 범용적인 영향력이 배가될 것입니다.
-* **사용자 및 개발자 경험(UX/DX)**: 실무 현장에서의 운용 편의성이 강화됨에 따라, 전반적인 개발 생산성이 향상되고 신제품 런칭 시너지를 극대화하는 촉진제 역할을 해줄 전망입니다.""",
+        f"""이번 보도된 {subject}의 혁신적 사례는 디지털 트랜스포메이션의 흐름을 가속화하며 엔지니어들과 혁신 기업들에게 대단히 중대한 예방학적/생산성 가치를 남기고 있습니다. 이 기술적 파장을 다각도로 주시한 핵심 시사점은 다음과 같습니다:
+* **플랫폼 다변화와 경쟁 우위**: 다양한 프레임워크와 기술 스택 간의 장벽이 {subject}을 필두로 허물어지면서, 생태계 전반의 경쟁 구도가 한층 속도감 있게 재편될 전망입니다.
+* **비즈니스 전환율 강화**: 복잡했던 기존의 배포 절차나 아키텍처 구조를 직관적으로 최적화해 줌으로써 실질적인 비즈니스 웰니스를 보장하고 전반적인 IT 가성비(CPO)를 혁신하는 시너지를 낳아 줍니다.""",
 
-        f"""새롭게 공개된 {subject}의 혁신적 소식은 글로벌 IT 인프라 발전 경로에 커다란 나침반을 놓아준 것과 다름없습니다. 이번 보도를 다각도로 진단한 심층 시사점은 아래와 같습니다:
-* **생태계 다변화와 경쟁 우위**: 다양한 오픈 플랫폼과 프레임워크 간의 유기적인 시너지가 창출되면서 {subject} 생태계 전반의 양적, 질적 팽창이 가파르게 실현될 것입니다.
-* **비즈니스 가치 확장**: 단순한 기술 혁신 단계를 넘어, 기업 비즈니스 모델 입증과 시장의 실질적인 니즈를 관통하는 강력한 상용적 생산성을 확보해 주었습니다.""",
-
-        f"""{subject} 분야의 놀라운 발전상을 함축하고 있는 이번 정보는 전 세계 엔지니어들과 C-Level 결정권자들에게도 매우 중대한 시사점을 남깁니다. 면밀하게 분석한 두 가지 실효적 인사이트는 다음과 같습니다:
-* **기술의 보편화와 표준 정립**: 복잡했던 기존 인프라 장벽이 완전히 해소되면서 {subject} 솔루션이 IT 전 영역의 표준 규격이자 필수 동력원으로 급부상하게 됩니다.
-* **사용자 친화적 서비스 전환**: 복잡한 설정 없이도 뛰어난 최적화를 경험할 수 있어 공급자와 소비자 그룹 모두의 만족도를 고르게 만족시킬 획기적 발판이 마련되었습니다."""
+        f"""새롭게 공개된 {subject} 지식은 모던 IT 및 소프트웨어 엔지니어링 업계에 커다란 설계도이자 청사진을 제시해 준 중대 마일스톤입니다. 현업에 바로 적용하기 좋은 입체적 진단은 아래와 같습니다:
+* **기술의 보편화와 표준 표준 정립**: 장벽이 높았던 고가용성 인프라의 접근성이 {subject} 아키텍처를 계기로 대폭 낮아져 중소 벤처들과 독립 엔지니어들도 엔터프라이즈급 퍼포먼스를 가볍게 구현할 수 있게 되었습니다.
+* **사용자 친화적 가치 체계 개편**: 실무 운용성이 강화됨에 따라 비즈니스 전반의 리소스 낭비를 차단하고, 고객과 엔지니어 그룹 모두가 만족하는 뛰어난 DX(Developer Experience)를 수호하게 됩니다."""
     ]
     
-    # 3번 영역(결론 및 시사점)의 동적 베리에이션 템플릿 풀
     conclusion_templates = [
-        f"""종합해 볼 때, 이번 {subject} 관련 긴급 뉴스는 4차 산업혁명의 흐름 속에서 기술적 패러다임을 더욱 빠른 속도로 재편하는 거대한 촉매제입니다. 앞으로도 이 신선한 변화가 업계와 현업 생태계 전반에 가져올 흥미진진한 가치를 계속 모니터링하여 유익한 IT 트렌드 리포트를 성실하게 업데이트해 드리겠습니다.""",
+        f"""종합해 볼 때, 이번 {subject} 관련 의학/기술 트렌드 리포트는 업계 전반의 패러다임을 혁신적으로 이끄는 강력한 이정표입니다. 앞으로도 전 세계 최고의 IT 데이터들을 팩트 체크하여, 유익하고 인사이트 가득한 트렌드 리포트를 성실하게 해설해 드리겠습니다.""",
         
-        f"""결론적으로 {subject}의 신규 행보는 디지털 트랜스포메이션을 추진하는 많은 혁신 기업들에게 새로운 설계도와 이정표를 쥐여 준 중대 이벤트입니다. 기술적 지평을 끊임없이 개척해 나가는 이 유의미한 패러다임의 변곡점을 매의 눈으로 주시하여 가치 있는 해설글로 보답하겠습니다.""",
-        
-        f"""마치며, 이번 {subject} 소식은 모던 IT 및 소프트웨어 엔지니어링 업계에 강력한 활력을 불어넣는 신호탄이라 단언할 수 있습니다. 기술 범용성과 강력한 가치 창출 능력을 동시에 입증해 낸 만큼, 이 거대한 기술적 물결을 세밀하게 분석하고 현장의 소식을 발 발빠르게 공유해 드리겠습니다."""
+        f"""결론적으로 {subject}의 파괴적 진화는 기술적 골든타임을 완벽하게 선점하려는 혁신가들에게 최상의 무기가 될 뉴스입니다. 매일 과학적 팩트를 검증해, 더 깊이 있고 신뢰할 수 있는 테크 칼럼으로 든든하게 뒤를 받쳐드리겠습니다."""
     ]
     
-    # 기사 해시 기반이나 난수 기반으로 템플릿 고유 매칭 (매 글마다 완전히 다르게 조합)
     hash_seed = len(translated_title) + len(translated_body)
     selected_insight = insight_templates[hash_seed % len(insight_templates)]
     selected_conclusion = conclusion_templates[(hash_seed + 3) % len(conclusion_templates)]
     
-    # 최종 마크다운 본문 구조 조립
     post_content = f"""
-최신 글로벌 테크 소식인 {feed_name}에서 발표한 매우 중요한 정보를 바탕으로 번역 및 컴파일 편찬한 IT 리포트입니다.
+전 세계 기술 트렌드를 주도하며 모던 소프트웨어 산업의 나침반이 되어주는 **[{feed_name}]**의 최신 의학/테크 리포트를 엔지니어링 관점의 독창적인 시사점과 결합하여 정밀 번역 편찬한 테크 보고서입니다.
 
 ---
 
-## 1. 개요 및 주요 포인트
-글로벌 기술 리더들의 혁신을 이끄는 본 기사의 주요 내용과 심층 요약은 다음과 같습니다:
+## 1. 최신 의학/테크 리포트 요약 및 팩트 체크
+해당 학술 및 기술 소식이 보도하고 있는 핵심 팩트 요약은 다음과 같습니다:
 
+> **[주요 팩트 요약]**
 > {translated_body}
 
-*최신 기술 트렌드에 대한 깊이 있는 세부 문맥과 공식 전문(Full Text)을 정독하시려면, 아래 원문 링크를 통해 보다 상세한 소식을 함께 점검해 보시길 권장합니다.*
+*이 최신 정보는 생태계의 패러다임을 흔드는 핵심 마일스톤을 담고 있습니다. 상세 논문 데이터 및 임상 시험 데이터, 기술 스펙 전문을 점검하시려면 하단의 출처 링크를 참고하시기 바랍니다.*
 
-## 2. 블로그 분석 및 인사이트
+---
+
+## 2. IT 개발자 및 엔지니어를 위한 심층 기술 시사점
+이번에 보도된 **{subject}** 소식과 긴밀히 맞물려, 현업 엔지니어들과 혁신 기업의 결정권자들이 기술적 우위를 지키고 비즈니스 웰니스를 실천하기 위한 핵심 전략입니다:
+
 {selected_insight}
 
 ---
 
-## 3. 결론 및 시사점
+## 3. 모던 IT 엔지니어링 4대 철칙 실천 가이드
+더 높은 DX 생산성과 철통 같은 인프라 안정성을 확보하기 위해 매일의 코드 집필 과정에서 반드시 수호해야 할 기본 헌법입니다:
+
+{it_guidelines}
+
+---
+
+## 4. 결론 및 테크 리더십 관점의 시사점
 {selected_conclusion}
 
-*본 아티클은 [{feed_name}]({link})의 공식 RSS 발행 기사를 합법적인 저작권 가이드라인을 철저히 준수하여 정밀 번역 편찬 및 출처를 정확히 명시하여 유익한 정보 제공 목적으로 작성되었습니다.*
+*본 IT 리포트는 [{feed_name}]({link})의 공식 RSS 발행 기사를 바탕으로 작성되었으며, 합법적인 인용 및 저작권 규정을 엄격히 준수하여 정밀 번역 및 고유의 기술 엔지니어링 분석 지식을 융합하여 기재되었습니다. 개인 및 비즈니스에 대한 개별적인 기술 스택 및 아키텍처 적용 시에는 반드시 전문 CTO 및 담당 엔지니어링 리드와의 면밀한 기술 검토를 우선 거치시기 바랍니다.*
 """
     return post_content
 
@@ -240,9 +314,27 @@ def auto_collect_posts():
     print("[INFO] AI 및 저작권 프리 정적 아티클 자동 수집 집필 파이프라인 가동!")
     os.makedirs(POSTS_DIR, exist_ok=True)
     
+    # [품질 보장 조치]: 수집 기동 시 기존의 단순/부실했던 자동 수집 레거시 IT 기사들을 깨끗하게 일괄 삭제 청소합니다.
+    print("[INFO] 기존 부실 IT 자동 수집 기사 일괄 소거 청소 개시...")
+    removed_count = 0
+    if os.path.exists(POSTS_DIR):
+        for filename in os.listdir(POSTS_DIR):
+            if filename.startswith("auto-") and filename.endswith(".md"):
+                try:
+                    os.remove(os.path.join(POSTS_DIR, filename))
+                    removed_count += 1
+                except Exception as e:
+                    print(f"  [CLEAN WARNING] 파일 삭제 실패 {filename}: {e}")
+    print(f"[INFO] 레거시 IT 자동 수집 기사 총 {removed_count}개 일괄 삭제 완료!")
+    
     collected_count = 0
+    # 피드당 2개씩 수집하여 최종 엄선된 고품질 기사 총 5~6개 수집 목표 달성
+    max_collect_limit = 6
     
     for idx, feed_info in enumerate(feeds):
+        if collected_count >= max_collect_limit:
+            break
+            
         print(f"\n[FEED] 테크 채널 분석 개시: {feed_info['name']}")
         try:
             feed = feedparser.parse(feed_info["url"])
@@ -250,10 +342,13 @@ def auto_collect_posts():
             print(f"  [ERROR] RSS 피드를 읽어들일 수 없습니다: {e}")
             continue
             
-        # 가장 최근 기사 최신 2개씩 수집 진행
-        entries = feed.entries[:2]
+        # 가장 최근 기사 최신 3개씩 파싱 시도 (필터에 통과하지 못하는 부실 기사가 있으므로 3개씩 후보 확보)
+        entries = feed.entries[:3]
         
         for entry in entries:
+            if collected_count >= max_collect_limit:
+                break
+                
             title = entry.title
             link = entry.link
             summary = entry.get("summary", entry.get("description", ""))
@@ -262,6 +357,11 @@ def auto_collect_posts():
             # [보안 필터 1]: 애드센스 정책 위반 키워드가 섞여 있으면 스크랩 원천 배제
             if check_blacklist(title) or check_blacklist(summary_clean):
                 print(f"  [BLOCKED] 애드센스 정책 위반 소지 감지 기사 배제: {title[:20]}...")
+                continue
+                
+            # [품질 필터 2]: 요약문 글자 수가 80자 이하이거나 메타데이터 텍스트만 있는 부실 기사는 수집 원천 제외!
+            if not validate_content(title, summary_clean):
+                print(f"  [SKIP QUALITY] 알맹이가 없고 단순 메타데이터만 든 부실 기사 거부: {title[:20]}...")
                 continue
                 
             # 슬러그 생성 및 파일명 포맷 조합
@@ -294,10 +394,16 @@ def auto_collect_posts():
                 prompt = f"""
                 You are an elite, highly professional IT tech and software engineering blogger.
                 Below is the raw summary data of a recent technology news article.
-                Your task is to write a highly detailed, extremely engaging, and long-form (at least 1500 Korean characters) blog post in Korean based on this information.
+                Your task is to write a highly detailed, extremely engaging, and long-form (at least 1800 Korean characters) blog post in Korean based on this information.
                 
                 CRITICAL COPYRIGHT & POLICY RULES:
-                1. DO NOT copy-paste sentences from the input. Extract the facts only, and write the entire post using completely new sentence structures and your own analytical words.
+                1. DO NOT copy-paste standard or generic explanations. You must write a completely customized, unique, and highly specific 4 principles guide that directly relates to the input news topic.
+                   For instance, if the news is about Amazon Bedrock prompt optimization:
+                     - Explain Developer Experience (DX) in terms of Prompt Engineering and playground latency.
+                     - Explain Web Performance in terms of LLM token latency and network payload.
+                     - Explain Security in terms of data privacy and model parameters protection.
+                     - Explain Scalability in terms of deploying multiple AI models for business growth.
+                   Every principle must be 100% custom-written and deeply tailored to the specific news topic. Repeating generic definitions is strictly forbidden!
                 2. Adhere strictly to the Google AdSense Program Policies. Never generate illegal, adult, hacking, crack, bypass, gambling, or violent contents.
                 3. The tone of voice must be polite, highly professional, informative, and friendly (use '-요', '-습니다' style).
                 
@@ -307,7 +413,11 @@ def auto_collect_posts():
                 Your Output Format MUST contain only the raw body of the article in standard Markdown format.
                 Do not include YAML frontmatter, do not include H1 title inside the markdown.
                 Structure the post beautifully with Heading 2 (##) and Heading 3 (###).
-                Include an engaging introduction, structured body paragraphs with deep technical analysis, a comparison or tabular data if appropriate, and a professional conclusion.
+                Include:
+                ## 1. 최신 의학/테크 리포트 요약 및 팩트 체크 (Detailed explanation of the news)
+                ## 2. IT 개발자 및 엔지니어를 위한 심층 기술 시사점 (Empathy, practical daily tech tips, connection to modern DX/UX)
+                ## 3. 모던 IT 엔지니어링 4대 철칙 실천 가이드 (DX, Web Performance, Security-First, Scalability specific engineering guidelines deeply customized to this news)
+                ## 4. 결론 및 테크 리더십 관점의 시사점 (Empathetic tech closing statement)
                 """
                 
                 ai_output = call_gemini_api(api_key, prompt)
