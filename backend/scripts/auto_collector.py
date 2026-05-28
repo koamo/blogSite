@@ -130,6 +130,38 @@ def extract_main_subject(title):
         
     return "IT 기술 생태계"
 
+def make_hooking_title_it(translated_title, subject):
+    """
+    밋밋한 IT 번역 제목을 뇌리를 자극하는 초특급 호기심 유발형 어그로 제목으로 리빌딩합니다.
+    """
+    prefixes = [
+        "[초비상]", "[대포착]", "[충격공개]", "[역대급]", "[긴급분석]", 
+        "[난리났다]", "[드디어]", "[단독포착]", "[전격발표]", "[세계가 주목]"
+    ]
+    suffixes = [
+        "이유는?!", "대체 왜 그럴까?", "세상에 이런 일이!", "이건 몰랐을 걸?!",
+        "소름 돋는 내막!", "우리가 대비해야 할 것들", "업계가 발칵 뒤집혔다!", "결국 터졌다!"
+    ]
+    
+    # 제목 다듬기
+    title_clean = translated_title.replace("IT 분석", "").replace("[IT 분석]", "").replace("IT 트렌드", "").replace("[IT 트렌드]", "").strip()
+    # 양끝 따옴표 등 제거
+    title_clean = re.sub(r'^["\'\[\(]+', '', title_clean)
+    title_clean = re.sub(r'["\'\]\)]+$', '', title_clean)
+    
+    prefix = random.choice(prefixes)
+    suffix = random.choice(suffixes)
+    
+    formats = [
+        f"{prefix} '{subject}'이(가) 불러올 거대한 폭풍, {title_clean}!",
+        f"{prefix} 결국 터졌다... {title_clean}의 소름 돋는 실체!",
+        f"{prefix} {title_clean} - {suffix}",
+        f"'{subject}'에 전 세계가 난리 난 상황! {prefix} {title_clean}",
+        f"{prefix} '{subject}'의 놀라운 대반전: {title_clean}!"
+    ]
+    
+    return random.choice(formats)
+
 def generate_dynamic_free_content(feed_name, link, translated_title, translated_body):
     """
     무료 번역 모드 시, 기사 주제에 최적화된 100% 차별화된 템플릿을 선택하여
@@ -139,45 +171,45 @@ def generate_dynamic_free_content(feed_name, link, translated_title, translated_
     subject_lower = subject.lower()
     
     # 1. 주제 분석을 통한 맞춤형 4대 IT 가이드라인 분기 수립 (중복 제거 핵심)
-    if any(x in subject_lower for x in ['aws', 'cloud', 'server', 'database', '인프라', '데이터베이스', '클라우드']):
+    if any(x in subject_lower for x in ['aws', 'cloud', 'server', 'database', '인프라', '데이터베이스', '클라우드', '네트워크', 'network']):
         # 유형 A: 클라우드/인프라/서버 형 맞춤형 가이드라인
-        it_guidelines = f"""서버 및 데이터 아키텍처 생태계에서 최근 발표된 **{subject}** 소식은 고가용성 IT 인프라 설계 측면에서 매우 깊은 분석점을 제시합니다. IT 블로그의 전문적인 실전 엔지니어링 4대 철칙은 다음과 같습니다:
+        it_guidelines = f"""서버 및 데이터 아키텍처 생태계에서 최근 발표된 **{subject}** 소식은 고가용성 IT 인프라 설계 측면에서 매우 깊은 분석점을 제시합니다. 이번 **{subject}**에 직결된 실전 엔지니어링 4대 철칙은 다음과 같습니다:
 
 1. **클라우드 자원 최적화 & DX (Developer Experience)**
    * **원리**: 인프라의 투명한 모니터링과 쾌속 배포 환경은 엔지니어들이 설정 지옥에서 벗어나 비즈니스 로직에 몰두할 수 있는 최고의 DX 가치를 낳아 줍니다.
-   * **실천 노하우**: {subject} 환경 변수를 로컬 파일(`.env`) 하위로 철저하게 분리하고, 자동 CI/CD 배포 파이프라인 상에 코드 무결성 검사(Linter)를 전면 동기화하여 개발 편의성을 극대화해야 합니다.
+   * **실천 노하우**: 이번 {subject} 환경 설정을 로컬 환경 변수 하위로 안전히 격리시키고, 자동 배포 파이프라인 상에 코드 무결성 검사를 긴밀하게 동기화하여 개발 편의성을 극대화해야 합니다.
 
 2. **인프라 성능 극대화 (Cloud Performance & Edge Routing)**
    * **원리**: 서버리스 아키텍처와 Edge 라우팅 기술은 글로벌 트래픽에 대한 레이턴시(응답 속도)를 극적으로 단축시킵니다.
-   * **실천 노하우**: Next.js의 정적 사이트 생성(SSG) 컴파일 방식을 채택하여 DB 호출 부하를 0%로 무력화하고, 폰트 및 정적 리소스는 CDN 전송망에 견고히 사전에 올려두어 최상의 접속 응답력을 수호해야 합니다.
+   * **실천 노하우**: Next.js의 정적 사이트 생성(SSG) 컴파일 방식을 채택하여 DB 호출 부하를 0%로 무력화하고, {subject} 기반 정적 리소스는 CDN 전송망에 견고히 사전에 올려두어 최상의 접속 응답력을 수호해야 합니다.
 
 3. **엔터프라이즈 보안 수호 (Cloud Security-First)**
    * **원리**: 개방형 클라우드 자원은 미세한 정책 설정 오류만으로도 데이터 유출과 크롤링 위협에 쉽게 무방비 노출될 수 있습니다.
-   * **실천 노하우**: 외부 모듈과 서버 라이브러리의 보안성 점검을 자동화하고, API 키 및 비밀 환경변수가 GitHub 원격 저장소에 유출되지 않도록 `.gitignore` 안전망을 철저히 설계 및 이중 점검해야 합니다.
+   * **실천 노하우**: 외부 모듈과 서버 라이브러리의 보안성 점검을 자동화하고, {subject} API 키 및 비밀 환경변수가 GitHub 원격 저장소에 유출되지 않도록 `.gitignore` 안전망을 철저히 설계 및 이중 점검해야 합니다.
 
 4. **유지보수 용이한 확장성 (Scalable Infrastructure)**
    * **원리**: 트래픽 증가에 따라 서버를 쪼개고 덧붙이는 구조적 스케일아웃(Scale-out) 능력이 서비스 생명 연장의 기본입니다.
-   * **실천 노하우**: 비즈니스 데이터 모델을 FastAPI의 Pydantic 인터페이스 등으로 규격화하여 명확히 고정하고, 프론트와 데이터 계층을 느슨하게 결합(Loose Coupling)하여 진화하는 인프라에 민첩하게 대처해야 합니다."""
+   * **실천 노하우**: 비즈니스 데이터 모델을 FastAPI의 Pydantic 인터페이스 등으로 규격화하여 명확히 고정하고, 프론트와 데이터 계층을 느슨하게 결합(Loose Coupling)하여 진화하는 {subject} 인프라에 민첩하게 대처해야 합니다."""
         
-    elif any(x in subject_lower for x in ['startup', 'raised', 'funding', '투자', '스타트업', '비즈니스', '유치']):
+    elif any(x in subject_lower for x in ['startup', 'raised', 'funding', '투자', '스타트업', '비즈니스', '유치', 'deal', 'money', 'funding', 'company', '기업']):
         # 유형 B: 비즈니스/스타트업/시장 형 맞춤형 가이드라인
-        it_guidelines = f"""스타트업 생태계에 강력한 활력을 불어넣는 **{subject}** 소식은 기술의 조기 상용화와 런칭 생산성 측면에서 실질적인 교훈을 전달합니다. 비즈니스 웰니스를 도모하기 위한 IT 엔지니어링 4대 철칙은 다음과 같습니다:
+        it_guidelines = f"""스타트업 생태계에 강력한 활력을 불어넣는 **{subject}** 소식은 기술의 조기 상용화와 런칭 생산성 측면에서 실질적인 교훈을 전달합니다. 이번 **{subject}** 비즈니스 성패와 직결된 IT 엔지니어링 4대 철칙은 다음과 같습니다:
 
 1. **린(Lean) 스타트업의 DX와 빠른 시장 진입**
    * **원리**: 신속하게 동작하는 프로토타입(MVP)을 시장에 내놓고 피드백을 수용하는 DX 구조는 초기 스타트업 생존에 절대적인 나침반이 됩니다.
-   * **실천 노하우**: 복잡한 빌드 단계를 생략하기 위해 내용 기반 캐싱(Incremental Build)을 탑재하여 로컬 빌드 속도를 평균 1초 미만으로 단축하고 릴리즈 주기를 단축해야 합니다.
+   * **실천 노하우**: 복잡한 빌드 단계를 생략하기 위해 내용 기반 캐싱(Incremental Build)을 탑재하여 {subject} 서비스 릴리즈 주기를 단축해야 합니다.
 
 2. **비즈니스 전환율을 돕는 경량화 성능 (Performance-Driven Conversion)**
    * **원리**: 초기 스타트업의 유입 고객은 로딩 속도가 2초를 초과할 때 과반이 이탈합니다. 속도가 곧 매출이자 비즈니스 성패의 변곡점입니다.
-   * **실천 노하우**: 자바스크립트 크기를 전면 최적화하고 Next.js의 RSC(React Server Components)를 통해 브라우저 연산량을 서버단으로 전가시켜, 저사양 모바일 접속 환경에서도 최상의 렌더링 퍼포먼스를 내야 합니다.
+   * **실천 노하우**: {subject} 서비스 내 자바스크립트 크기를 전면 최적화하고 Next.js의 RSC(React Server Components)를 통해 브라우저 연산량을 서버단으로 전가시켜, 저사양 모바일 접속 환경에서도 최상의 렌더링 퍼포먼스를 내야 합니다.
 
 3. **초기 서비스 안정성 및 무결점 보안 (Startup Security)**
    * **원리**: 대외 공신력이 생명인 스타트업에서 발생한 단 한 건의 해킹과 유출 스캔들은 기업 가치를 0%로 급락시키는 독이 됩니다.
-   * **실천 노하우**: 중요 결제 모듈과 인증 환경 변수를 이중 잠금하고, 불법 정책 위반 트래픽과 이상 접근 시도를 원천 차단하는 실시간 정책 필터를 내장해 위협 요소를 입구에서 걸러내야 합니다.
+   * **실천 노하우**: 중요 결제 모듈과 인증 환경 변수를 이중 잠금하고, 불법 정책 위반 트래픽과 이상 접근 시도를 원천 차단하는 실시간 정책 필터를 내장해 {subject}의 보안 취약점을 입구에서 걸러내야 합니다.
 
 4. **저비용 아키텍처의 확장 유연성 (Cost-Effective Scalability)**
    * **원리**: 초기 인프라 운용비 부담을 혁신적으로 절감하면서도, 트래픽 폭탄에 즉시 유연하게 대처할 수 있는 고효율 아키텍처를 세팅해야 합니다.
-   * **실천 노하우**: 데이터베이스 없는 정적 콘텐츠 방식 B 구조를 정밀 구축함으로써, 호스팅 비용을 0원으로 꽁꽁 묶어두면서도 수천만 트래픽에 무너지지 않는 불사조 서비스를 구현해야 합니다."""
+   * **실천 노하우**: 데이터베이스 없는 정적 콘텐츠 방식 B 구조를 정밀 구축함으로써, 호스팅 비용을 0원으로 꽁꽁 묶어두면서도 {subject} 서비스에 밀려오는 대규모 트래픽에 무너지지 않는 안정성을 확보해야 합니다."""
 
     else:
         # 유형 C: 코딩/프레임워크/AI/보편 기술 맞춤형 가이드라인
@@ -185,29 +217,29 @@ def generate_dynamic_free_content(feed_name, link, translated_title, translated_
 
 1. **모던 프레임워크의 DX 생산성 (Developer Experience)**
    * **원리**: 코드 변경 사항이 브라우저에 핫리로드되는 속도와 에러 포인트를 정확히 집어내 주는 개발 도구의 풍요로움은 엔지니어링 가치를 극대화합니다.
-   * **실천 노하우**: Pydantic 모델과 TypeScript 엄격 모드(Strict Mode)를 철저히 탑재하여 정적 컴파일 단계에서 논리적 에러를 100% 미연에 감지 및 예방해야 합니다.
+   * **실천 노하우**: {subject} 로직 작성 시 Pydantic 모델과 TypeScript 엄격 모드(Strict Mode)를 철저히 탑재하여 정적 컴파일 단계에서 논리적 에러를 100% 미연에 감지 및 예방해야 합니다.
 
 2. **최적화된 렌더링 성능 (Web Standard Optimization)**
    * **원리**: 화면이 뚝뚝 끊기지 않고 물 흐르듯 가볍게 전환되는 기술적 고가치(Core Web Vitals)는 최상의 가독성과 모던한 타이포그래피 브랜딩을 안겨줍니다.
-   * **실천 노하우**: 마크다운을 정적 HTML로 컴파일할 때 fenced_code와 tables 파서를 사전 동기화하고, 리플로우(Reflow)를 최소화하는 유려한 Tailwind CSS를 조화롭게 융합해야 합니다.
+   * **실천 노하우**: {subject} 컴포넌트를 마크다운을 통해 정적 HTML로 컴파일할 때 fenced_code와 tables 파서를 사전 동기화하고, 리플로우(Reflow)를 최소화하는 유려한 Tailwind CSS를 조화롭게 융합해야 합니다.
 
 3. **안전성 및 철통 소스 보안 (Code Integrity & Security)**
    * **원리**: 편리하게 가져다 쓰는 무수한 오픈소스 패키지 속 백도어와 취약점은 언제 터질지 모르는 시한폭탄과 다름없습니다.
-   * **실천 노하우**: npm audit 및 가상환경 의존성 정밀 모니터링을 상시화하고, 구글 애드센스 등 수익 모듈 주입 시 출처가 입증된 라이브러리 스크립트만 선별 허용하여 시스템 오작동을 차단해야 합니다.
+   * **실천 노하우**: {subject} 관련 패키지 설치 시 npm audit 및 가상환경 의존성 정밀 모니터링을 상시화하고, 구글 애드센스 등 수익 모듈 주입 시 출처가 입증된 라이브러리 스크립트만 선별 허용하여 시스템 오작동을 차단해야 합니다.
 
 4. **결합성이 느슨한 유지보수성 (Loose Coupling Scalability)**
    * **원리**: 객체지향 원칙(SOLID)처럼 각 레이어가 독립적으로 진화할 수 있도록 코드를 설계하면 장기 유지보수 단계의 비용이 기적처럼 저렴해집니다.
-   * **실천 노하우**: 복잡한 비즈니스 모듈 간의 디펜던시를 인터페이스를 거쳐 느슨하게 설계하고, 데이터 입출력 구조를 100% 정적 파일 기반으로 동기화하여 아키텍처의 수평 확장을 무리 없이 가능케 해야 합니다."""
+   * **실천 노하우**: 복잡한 {subject} 비즈니스 모듈 간의 디펜던시를 인터페이스를 거쳐 느슨하게 설계하고, 데이터 입출력 구조를 100% 정적 파일 기반으로 동기화하여 아키텍처의 수평 확장을 무리 없이 가능케 해야 합니다."""
 
     # 2번/3번 분석 문단 풀 (주제와 결합해 다양화)
     insight_templates = [
         f"""이번 보도된 {subject}의 혁신적 사례는 디지털 트랜스포메이션의 흐름을 가속화하며 엔지니어들과 혁신 기업들에게 대단히 중대한 예방학적/생산성 가치를 남기고 있습니다. 이 기술적 파장을 다각도로 주시한 핵심 시사점은 다음과 같습니다:
 * **플랫폼 다변화와 경쟁 우위**: 다양한 프레임워크와 기술 스택 간의 장벽이 {subject}을 필두로 허물어지면서, 생태계 전반의 경쟁 구도가 한층 속도감 있게 재편될 전망입니다.
-* **비즈니스 전환율 강화**: 복잡했던 기존의 배포 절차나 아키텍처 구조를 직관적으로 최적화해 줌으로써 실질적인 비즈니스 웰니스를 보장하고 전반적인 IT 가성비(CPO)를 혁신하는 시너지를 낳아 줍니다.""",
+* **비즈니스 전환율 강화**: 복잡했던 기존의 배포 절차나 아키텍처 구조를 {subject} 기반으로 직관적으로 최적화해 줌으로써 실질적인 비즈니스 웰니스를 보장하고 전반적인 IT 가성비(CPO)를 혁신하는 시너지를 낳아 줍니다.""",
 
         f"""새롭게 공개된 {subject} 지식은 모던 IT 및 소프트웨어 엔지니어링 업계에 커다란 설계도이자 청사진을 제시해 준 중대 마일스톤입니다. 현업에 바로 적용하기 좋은 입체적 진단은 아래와 같습니다:
 * **기술의 보편화와 표준 표준 정립**: 장벽이 높았던 고가용성 인프라의 접근성이 {subject} 아키텍처를 계기로 대폭 낮아져 중소 벤처들과 독립 엔지니어들도 엔터프라이즈급 퍼포먼스를 가볍게 구현할 수 있게 되었습니다.
-* **사용자 친화적 가치 체계 개편**: 실무 운용성이 강화됨에 따라 비즈니스 전반의 리소스 낭비를 차단하고, 고객과 엔지니어 그룹 모두가 만족하는 뛰어난 DX(Developer Experience)를 수호하게 됩니다."""
+* **사용자 친화적 가치 체계 개편**: {subject} 실무 운용성이 강화됨에 따라 비즈니스 전반의 리소스 낭비를 차단하고, 고객과 엔지니어 그룹 모두가 만족하는 뛰어난 DX(Developer Experience)를 수호하게 됩니다."""
     ]
     
     conclusion_templates = [
@@ -282,11 +314,12 @@ def call_gemini_api(api_key, prompt):
         return None
 
 def auto_collect_posts():
-    # 수집 정보 (유력 글로벌 테크 RSS 피드 매칭)
+    # 수집 정보 (초특급 핫이슈 글로벌 테크 RSS 피드로 전격 물갈이)
     feeds = [
-        {"name": "TechCrunch Startups", "url": "https://techcrunch.com/category/startups/feed/"},
-        {"name": "Google Developers", "url": "https://feeds.feedburner.com/GoogleDeveloperBlog"},
-        {"name": "AWS News", "url": "https://aws.amazon.com/blogs/aws/feed/"}
+        {"name": "The Verge", "url": "https://www.theverge.com/rss/index.xml"},
+        {"name": "Wired", "url": "https://www.wired.com/feed/rss"},
+        {"name": "TechCrunch Main", "url": "https://techcrunch.com/feed/"},
+        {"name": "Hacker News", "url": "https://news.ycombinator.com/rss"}
     ]
     
     # 윈도우 환경 편의성 대폭 개선: 시스템 환경 변수 외에도 프로젝트 루트의 .env 파일 자동 로딩 및 주입
@@ -387,6 +420,9 @@ def auto_collect_posts():
             # 1초 잘림 방지 필터 거치기
             cleaned_summary = clean_truncated_summary(summary_clean)
             
+            final_title = ""
+            subject = extract_main_subject(title)
+            
             if api_key:
                 # [모드 A] Gemini 2.5 Flash를 가동한 100% 완전 창작 오리지널 포스팅 모드
                 print("  [AI MODE] Gemini 2.5 Flash 초지능 창작 블로그 에디팅 기동...")
@@ -395,6 +431,14 @@ def auto_collect_posts():
                 You are an elite, highly professional IT tech and software engineering blogger.
                 Below is the raw summary data of a recent technology news article.
                 Your task is to write a highly detailed, extremely engaging, and long-form (at least 1800 Korean characters) blog post in Korean based on this information.
+                
+                CRITICAL TITLE & MARKETING RULES:
+                1. You MUST generate an extremely click-driven, curiosity-inducing, and catchy Korean title.
+                   - Avoid flat translations or boring academic titles.
+                   - Use high-impact hooks like "[초비상]", "[대포착]", "[충격공개]", "[역대급]", "[단독포착]", "[전격발표]", "[세계가 주목]" at the beginning.
+                   - Rephrase the title to spark absolute curiosity so that users cannot resist clicking it. (e.g., instead of "Apple Vision Pro update", write "[대포착] 애플이 숨겨온 미래 카드 공개? 비전 프로 업데이트에 전 세계가 놀란 소름 돋는 실체!")
+                   - The first line of your output MUST be the title in this exact format:
+                     TITLE: [Your High-Impact Hooking Title]
                 
                 CRITICAL COPYRIGHT & POLICY RULES:
                 1. DO NOT copy-paste standard or generic explanations. You must write a completely customized, unique, and highly specific 4 principles guide that directly relates to the input news topic.
@@ -410,7 +454,7 @@ def auto_collect_posts():
                 Input Article Title: {title}
                 Input Article Summary: {cleaned_summary}
                 
-                Your Output Format MUST contain only the raw body of the article in standard Markdown format.
+                Your Output Format MUST contain the TITLE on the very first line starting with "TITLE: ", followed by the raw body of the article in standard Markdown format (separated by newlines).
                 Do not include YAML frontmatter, do not include H1 title inside the markdown.
                 Structure the post beautifully with Heading 2 (##) and Heading 3 (###).
                 Include:
@@ -422,8 +466,32 @@ def auto_collect_posts():
                 
                 ai_output = call_gemini_api(api_key, prompt)
                 if ai_output:
-                    post_content = ai_output.strip()
-                    meta_description = f"최신 글로벌 테크 트렌드 리포트 '{title}'에 대한 AI 심층 분석 및 독창적 기술 해설 리포트입니다."
+                    ai_output = ai_output.strip()
+                    # 제목 라인 추출
+                    lines = ai_output.split('\n')
+                    title_line = ""
+                    body_start_idx = 0
+                    
+                    for idx_line, line in enumerate(lines):
+                        if line.startswith("TITLE:"):
+                            title_line = line.replace("TITLE:", "").strip()
+                            body_start_idx = idx_line + 1
+                            break
+                        elif line.startswith("title:"):
+                            title_line = line.replace("title:", "").strip()
+                            body_start_idx = idx_line + 1
+                            break
+                    
+                    if title_line:
+                        # 따옴표 제거
+                        title_line = title_line.strip('"').strip("'")
+                        final_title = title_line
+                        post_content = "\n".join(lines[body_start_idx:]).strip()
+                    else:
+                        final_title = make_hooking_title_it(title, subject)
+                        post_content = ai_output
+                        
+                    meta_description = f"최신 글로벌 테크 핫이슈 '{final_title}'에 대한 AI 심층 분석 및 독창적 기술 해설 리포트입니다."
                 else:
                     api_key = "" # API 통신 실패 시 모드 B로 대체 기동
                     
@@ -438,18 +506,19 @@ def auto_collect_posts():
                     # 요약 본문 번역
                     translated_body = translator.translate(cleaned_summary[:4500])
                     
+                    # 호기심 유발형 타이틀 빌더 적용
+                    final_title = make_hooking_title_it(translated_title, subject)
+                    
                     # 동적 템플릿 조합 본문 생성
                     post_content = generate_dynamic_free_content(feed_info['name'], link, translated_title, translated_body)
                     
-                    meta_description = f"글로벌 테크 미디어 {feed_info['name']}에서 보도된 '{translated_title}' 기사에 대한 정밀 번역 편찬 분석 리포트입니다."
+                    meta_description = f"글로벌 테크 미디어 {feed_info['name']}에서 보도된 '{final_title}' 기사에 대한 정밀 번역 편찬 분석 리포트입니다."
                     
                 except Exception as e:
                     print(f"  [ERROR] 무료 번역 엔진 장애 발생: {e}")
                     continue
             
             # YAML Frontmatter 헤더 가이드라인 생성
-            final_title = f"[IT 트렌드] {title}" if api_key else f"[IT 분석] {translated_title}"
-            
             yaml_header = f"""---
 title: "{final_title}"
 date: "{datetime.now().strftime('%Y-%m-%d')}"
@@ -464,7 +533,7 @@ slug: "auto-{slug}"
             with open(output_filepath, "w", encoding="utf-8") as f:
                 f.write(yaml_header + post_content)
                 
-            print(f"  [SUCCESS] 초안 마크다운 적재 완료: auto-{slug}.md")
+            print(f"  [SUCCESS] 초안 마크다운 적재 완료: auto-{slug}.md (제목: {final_title})")
             collected_count += 1
             
     print(f"\n[COMPLETE] 총 {collected_count}개의 고품질 AI 및 지능형 동적 기사 초안이 '/data/posts/' 하위에 완벽히 생성 적재되었습니다!")
