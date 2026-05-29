@@ -398,18 +398,8 @@ def auto_collect_posts():
     print("[INFO] AI 및 저작권 프리 정적 아티클 자동 수집 집필 파이프라인 가동!")
     os.makedirs(POSTS_DIR, exist_ok=True)
     
-    # [품질 보장 조치]: 수집 기동 시 기존의 단순/부실했던 자동 수집 레거시 IT 기사들을 깨끗하게 일괄 삭제 청소합니다.
-    print("[INFO] 기존 부실 IT 자동 수집 기사 일괄 소거 청소 개시...")
-    removed_count = 0
-    if os.path.exists(POSTS_DIR):
-        for filename in os.listdir(POSTS_DIR):
-            if filename.startswith("auto-") and filename.endswith(".md"):
-                try:
-                    os.remove(os.path.join(POSTS_DIR, filename))
-                    removed_count += 1
-                except Exception as e:
-                    print(f"  [CLEAN WARNING] 파일 삭제 실패 {filename}: {e}")
-    print(f"[INFO] 레거시 IT 자동 수집 기사 총 {removed_count}개 일괄 삭제 완료!")
+    # [품질 보장 조치]: 콘텐츠 영구 누적을 위해 이전 자동 파일 청소 단계를 배제합니다.
+    print('[INFO] 콘텐츠 영구 누적을 위해 이전 자동 파일 청소 단계를 배제합니다.')
     
     collected_count = 0
     # 피드당 2개씩 수집하여 최종 엄선된 고품질 기사 총 5~6개 수집 목표 달성
