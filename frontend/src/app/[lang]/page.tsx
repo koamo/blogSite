@@ -47,7 +47,7 @@ export default async function Home({ params }: PageProps) {
     ko: {
       badge: '✨ 프리미엄 지식 아카이브',
       welcome: '지식의 가치를 더하는 공간,',
-      description: '수익형 구글 애드센스 심사를 한 번에 통과하기 위한 최적의 기술 세팅 위에, 엄선된 IT 실무 기술 지식과 스마트한 시간 관리 팁, 그리고 자기계발 노하우를 깊이 있게 기록합니다.',
+      description: '최신 웹 개발 트렌드, 서버 아키텍처 및 실무 엔지니어링 지식을 깊이 있게 다루는 프리미엄 테크놀로지 블로그입니다.',
       latest: '최신 발행 아티클',
       total: `총 ${posts.length}개 발행됨`,
       readMore: '자세히 보기',
@@ -55,7 +55,7 @@ export default async function Home({ params }: PageProps) {
     en: {
       badge: '✨ Premium Knowledge Archive',
       welcome: 'A space that adds value to knowledge,',
-      description: 'Built on top of an optimized technical configuration engineered to pass the profitable Google AdSense audit at once, we catalog in-depth IT engineering insights, smart time management methodologies, and practical self-improvement philosophies.',
+      description: 'A premium technology blog covering the latest web development trends, server architecture, and practical engineering knowledge in depth.',
       latest: 'Latest Publications',
       total: `Total ${posts.length} articles published`,
       readMore: 'Read Article',
@@ -63,7 +63,7 @@ export default async function Home({ params }: PageProps) {
     ja: {
       badge: '✨ プレミアム知識アーカイブ',
       welcome: '知識の価値を高める空間、',
-      description: '収益型Googleアドセンス審査を一発で通過するための最適な技術設定の上に、厳選されたIT実務技術知識とスマートな時間管理のコツ、そして自己開発のノウハウを深く記録します。',
+      description: '最新のWeb開発トレンド、サーバーアーキテクチャ、および実務エンジニアリングの知識を深く掘り下げるプレミアムテクノロジーブログです。',
       latest: '最新の発行記事',
       total: `合計 ${posts.length} 個の記事`,
       readMore: '詳細を見る',

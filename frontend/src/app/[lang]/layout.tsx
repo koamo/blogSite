@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { Outfit, Inter } from 'next/font/google';
 import '../globals.css'; 
 import Header from '@/components/Header';
@@ -24,15 +24,15 @@ export const metadata: Metadata = {
     default: 'GoldenLog - 가치 있는 개인 지식 블로그',
     template: '%s | GoldenLog',
   },
-  description: '구글 애드센스 승인 및 최신 IT, 생산성, 자기계발 전문 지식을 전달하는 초고속 정적 블로그입니다.',
-  keywords: ['애드센스', '수익형블로그', 'IT개발', '생산성팁', '노션', 'NextJS'],
+  description: '최신 IT 기술 동향, 프로그래밍 인사이트 및 실무 엔지니어링 지식을 전달하는 프리미엄 테크 블로그입니다.',
+  keywords: ['IT트렌드', '기술블로그', 'IT개발', '소프트웨어 엔지니어링', '프론트엔드', 'NextJS'],
   authors: [{ name: 'GoldenLog' }],
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://blog-site-seven-weld.vercel.app'), 
   
   // [보완 핵심]: 네이버 서치어드바이저 및 SNS 카드 공유용 Open Graph 최적화
   openGraph: {
     title: 'GoldenLog - 가치 있는 개인 지식 블로그',
-    description: '구글 애드센스 승인 및 최신 IT, 생산성, 자기계발 전문 지식을 전달하는 초고속 정적 블로그입니다.',
+    description: '최신 IT 기술 동향, 프로그래밍 인사이트 및 실무 엔지니어링 지식을 전달하는 프리미엄 테크 블로그입니다.',
     url: 'https://blog-site-seven-weld.vercel.app',
     siteName: 'GoldenLog',
     locale: 'ko_KR',
