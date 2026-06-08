@@ -501,11 +501,19 @@ def auto_collect_posts():
                 Your Output Format MUST contain the TITLE on the very first line starting with "TITLE: ", followed by the raw body of the article in standard Markdown format (separated by newlines).
                 Do not include YAML frontmatter, do not include H1 title inside the markdown.
                 Structure the post beautifully with Heading 2 (##) and Heading 3 (###).
+                
+                [RICH FORMATTING REQUIRED FOR ADSENSE]:
+                You MUST use rich markdown formatting to break up long walls of text.
+                - Use Blockquotes (>) for important key takeaways or expert quotes.
+                - Use Bold text (**) for important keywords, numbers, or concepts.
+                - Use unordered/ordered lists for steps or summaries.
+                - Break your paragraphs so they are not too long. Make it visually appealing.
+                
                 Include:
-                ## 1. 최신 의학/테크 리포트 요약 및 팩트 체크 (Detailed explanation of the news)
-                ## 2. IT 개발자 및 엔지니어를 위한 심층 기술 시사점 (Empathy, practical daily tech tips, connection to modern DX/UX)
-                ## 3. 모던 IT 엔지니어링 4대 철칙 실천 가이드 (DX, Web Performance, Security-First, Scalability specific engineering guidelines deeply customized to this news)
-                ## 4. 결론 및 테크 리더십 관점의 시사점 (Empathetic tech closing statement)
+                ## 1. 최신 의학/테크 리포트 요약 및 팩트 체크 (Detailed explanation of the news using > blockquotes for core facts)
+                ## 2. IT 개발자 및 엔지니어를 위한 심층 기술 시사점 (Empathy, practical daily tech tips, connection to modern DX/UX, use bullet points)
+                ## 3. 모던 IT 엔지니어링 4대 철칙 실천 가이드 (DX, Web Performance, Security-First, Scalability specific engineering guidelines deeply customized to this news, highlight key terms in **bold**)
+                ## 4. 결론 및 테크 리더십 관점의 시사점 (Empathetic tech closing statement with a final thought in a > blockquote)
                 """
                 
                 ai_output = call_gemini_api(api_key_loaded, prompt)
