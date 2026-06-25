@@ -29,11 +29,13 @@ export default function Header({ lang }: HeaderProps) {
   };
 
   // UI 언어 분기
-  const navText = {
-    ko: '전체 기사',
-    en: 'Articles',
-    ja: '記事一覧'
-  }[lang as 'ko' | 'en' | 'ja'] || '전체 기사';
+  const navHome = {
+    ko: '홈', en: 'Home', ja: 'ホーム'
+  }[lang as 'ko' | 'en' | 'ja'] || '홈';
+
+  const navArchive = {
+    ko: '모든 기사', en: 'Archive', ja: 'すべての記事'
+  }[lang as 'ko' | 'en' | 'ja'] || '모든 기사';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/10 bg-[#030712]/80 backdrop-blur-md">
@@ -52,7 +54,13 @@ export default function Header({ lang }: HeaderProps) {
             href={`/${lang}`} 
             className="text-sm font-medium text-slate-300 hover:text-violet-300 transition-colors"
           >
-            {navText}
+            {navHome}
+          </Link>
+          <Link 
+            href={`/${lang}/archive`} 
+            className="text-sm font-medium text-slate-300 hover:text-violet-300 transition-colors"
+          >
+            {navArchive}
           </Link>
           
           {/* [다국어 퀵 스위처]: 미니멀 네온 아우라 세그먼트 버튼 */}

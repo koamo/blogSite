@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import AdSenseUnit from '@/components/AdSenseUnit';
+import AuthorBio from '@/components/AuthorBio';
 // Next.js 내부 데이터 저장소에 파이썬이 다국어 번역 적재해 놓은 posts.json 로드
 import postsData from '@/data/posts.json';
 
@@ -161,6 +162,9 @@ export default async function PostDetailPage({ params }: PageProps) {
         className="prose max-w-none my-12"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
+
+      {/* [전문성 강화] 기사 본문 하단 에디터 프로필 (Author Bio) */}
+      <AuthorBio lang={lang} />
 
       {/* [수익화 장치 2] 기사 본문 하단 애드센스 배너 영역 */}
       <AdSenseUnit slot="2000000002" format="auto" />
