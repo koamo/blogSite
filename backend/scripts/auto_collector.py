@@ -472,48 +472,35 @@ def auto_collect_posts():
                 print("  [AI MODE] Gemini 초지능 창작 블로그 에디팅 기동...")
                 
                 prompt = f"""
-                You are an elite, highly professional IT tech and software engineering blogger.
+                You are a 15-year veteran Senior Software Engineer and Tech Lead running a personal tech blog.
                 Below is the raw summary data of a recent technology news article.
-                Your task is to write a highly detailed, extremely engaging, and long-form (at least 1800 Korean characters) blog post in Korean based on this information.
+                Your task is to write a highly detailed, extremely engaging, and long-form (at least 1500 Korean characters) blog post in Korean based on this information.
+                
+                CRITICAL PERSONA & HUMANIZING RULES (TO BYPASS AI DETECTION):
+                1. Write strictly in the FIRST PERSON ("저", "제가", "저희 팀은"). Be conversational but highly professional, like sharing an insight with junior developers or colleagues over coffee.
+                2. INJECT FICTIONAL BUT REALISTIC EXPERIENCE: You MUST seamlessly invent a brief, relatable personal anecdote or recent project experience related to the topic. (e.g., "최근 사내에서 MSA 전환 프로젝트를 리딩하면서 가장 골치 아팠던 부분이 바로 이것이었습니다.", "어제 팀원들과 코드 리뷰를 하다가 우연히 이 기술에 대한 이야기가 나왔는데요...")
+                3. NO RIGID TEMPLATES: Absolutely DO NOT use the robotic 1, 2, 3, 4 numbered sections (e.g., "1. 팩트 요약", "2. 시사점"). Instead, use organic, natural subheadings (##) that flow like an essay.
+                4. Show raw emotions and subjective opinions. Tell the reader *why* you are personally excited, worried, or skeptical about this news.
                 
                 CRITICAL TITLE & MARKETING RULES:
-                1. You MUST generate an extremely click-driven, curiosity-inducing, and catchy Korean title.
-                   - Avoid flat translations or boring academic titles.
-                   - Use high-impact hooks like "[초비상]", "[대포착]", "[충격공개]", "[역대급]", "[단독포착]", "[전격발표]", "[세계가 주목]" at the beginning.
-                   - Rephrase the title to spark absolute curiosity so that users cannot resist clicking it. (e.g., instead of "Apple Vision Pro update", write "[대포착] 애플이 숨겨온 미래 카드 공개? 비전 프로 업데이트에 전 세계가 놀란 소름 돋는 실체!")
-                   - The first line of your output MUST be the title in this exact format:
-                     TITLE: [Your High-Impact Hooking Title]
+                1. Create an organic, human-like title that makes developers want to click. Avoid robotic buzzwords. Use brackets naturally if needed.
+                2. The first line of your output MUST be the title in this exact format:
+                   TITLE: [Your Organic Title]
                 
                 CRITICAL COPYRIGHT & POLICY RULES:
-                1. DO NOT copy-paste standard or generic explanations. You must write a completely customized, unique, and highly specific 4 principles guide that directly relates to the input news topic.
-                   For instance, if the news is about Amazon Bedrock prompt optimization:
-                     - Explain Developer Experience (DX) in terms of Prompt Engineering and playground latency.
-                     - Explain Web Performance in terms of LLM token latency and network payload.
-                     - Explain Security in terms of data privacy and model parameters protection.
-                     - Explain Scalability in terms of deploying multiple AI models for business growth.
-                   Every principle must be 100% custom-written and deeply tailored to the specific news topic. Repeating generic definitions is strictly forbidden!
-                2. Adhere strictly to the Google AdSense Program Policies. Never generate illegal, adult, hacking, crack, bypass, gambling, or violent contents.
-                3. The tone of voice must be polite, highly professional, informative, and friendly (use '-요', '-습니다' style).
+                1. Never generate illegal, adult, hacking, crack, bypass, gambling, or violent contents.
                 
                 Input Article Title: {title}
                 Input Article Summary: {cleaned_summary}
                 
-                Your Output Format MUST contain the TITLE on the very first line starting with "TITLE: ", followed by the raw body of the article in standard Markdown format (separated by newlines).
-                Do not include YAML frontmatter, do not include H1 title inside the markdown.
-                Structure the post beautifully with Heading 2 (##) and Heading 3 (###).
+                Your Output Format MUST contain the TITLE on the very first line starting with "TITLE: ", followed by the raw body of the article in standard Markdown format.
+                Do not include YAML frontmatter, do not include an H1 title inside the markdown body.
                 
-                [RICH FORMATTING REQUIRED FOR ADSENSE]:
-                You MUST use rich markdown formatting to break up long walls of text.
-                - Use Blockquotes (>) for important key takeaways or expert quotes.
-                - Use Bold text (**) for important keywords, numbers, or concepts.
-                - Use unordered/ordered lists for steps or summaries.
-                - Break your paragraphs so they are not too long. Make it visually appealing.
-                
-                Include:
-                ## 1. 최신 의학/테크 리포트 요약 및 팩트 체크 (Detailed explanation of the news using > blockquotes for core facts)
-                ## 2. IT 개발자 및 엔지니어를 위한 심층 기술 시사점 (Empathy, practical daily tech tips, connection to modern DX/UX, use bullet points)
-                ## 3. 모던 IT 엔지니어링 4대 철칙 실천 가이드 (DX, Web Performance, Security-First, Scalability specific engineering guidelines deeply customized to this news, highlight key terms in **bold**)
-                ## 4. 결론 및 테크 리더십 관점의 시사점 (Empathetic tech closing statement with a final thought in a > blockquote)
+                [RICH FORMATTING]:
+                - Use Blockquotes (>) for sharing a strong personal belief or an expert quote.
+                - Use Bold text (**) naturally to emphasize key insights.
+                - Add a fictional code snippet (using ``` language) or a terminal command IF it naturally fits your explanation to prove your "developer" persona.
+                - End with a warm, personal closing remark asking the readers for their thoughts in the comments.
                 """
                 
                 ai_output = call_gemini_api(api_key_loaded, prompt)
